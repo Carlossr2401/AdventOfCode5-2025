@@ -109,6 +109,11 @@ classDiagram
         +withinTheRange(value) boolean
     }
 
+    class FileOutput {
+        -ranges: List~Rank~
+        -id: List~Long~
+    }
+
     %% Relaciones
     Main --> SolverFactory : usa
     SolverFactory --> Day05Solver : crea
@@ -120,4 +125,8 @@ classDiagram
     ReaderFactory ..> FileInstructionReader : instancia
     Day05Solver --> RankVerification : delega lógica de negocio
     RankVerification *-- Rank : compone
+    FileInstructionReader ..> Rank : crea
+    InstructionReader ..> FileOutput : retorna
+    FileInstructionReader ..> FileOutput : retorna
+    FileOutput o-- Rank : agrega
 ```
