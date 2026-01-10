@@ -1,4 +1,4 @@
-package software.aoc.day05.a;
+package software.aoc.day05;
 
 public class ReaderFactory {
     public static InstructionReader createFileReader(String path) {

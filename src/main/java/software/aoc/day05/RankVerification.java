@@ -1,4 +1,4 @@
-package software.aoc.day05.b;
+package software.aoc.day05;
 
 import java.util.*;
 

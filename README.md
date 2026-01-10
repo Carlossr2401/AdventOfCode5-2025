@@ -1,132 +1,148 @@
-# Advent of Code 2025 - Día 5: Inventory Management System
+# Advent of Code 2025 - Día 5: Verificación de Rangos de IDs
 
-Este repositorio contiene la solución para el Día 5 del Advent of Code 2025, implementada en Java. El problema se centra en gestionar un sistema de inventario de ingredientes, determinando cuáles son frescos basándose en rangos de IDs.
+Este proyecto contiene la solución para el **Día 5** del Advent of Code 2025. El desafío consiste en procesar conjuntos de rangos numéricos ("Ranks") y listas de identificadores, realizando validaciones de pertenencia y cálculos de cobertura total mediante la fusión de intervalos.
 
-## Descripción del Problema
+## Diseño y Arquitectura
 
-### Parte 1
+En este proyecto se aplican estrictamente los principios SOLID y Clean Code, junto con patrones de diseño estratégicos para garantizar un código mantenible, extensible y testeable.
 
-El objetivo es determinar cuántos de los IDs de ingredientes disponibles son "frescos". Un ID se considera fresco si cae dentro de cualquiera de los rangos de IDs frescos proporcionados en la base de datos.
+### 1. Principios SOLID
 
-### Parte 2
+- **Single Responsibility Principle (SRP)**:
+  - `SolverFactory`: Responsable únicamente de la creación de los objetos Solver según el tipo ("A" o "B").
+  - `FileInstructionReader`: Responsable de la lectura y parseo del archivo de entrada hacia un objeto de transferencia `FileOutput`.
+  - `Day05ASolver` / `Day05BSolver`: Contienen la lógica específica de coordinación para cada parte del problema.
+  - `RankVerification`: Encapsula toda la lógica de dominio relacionada con los rangos (validación de pertenencia, fusión de intervalos, cálculo de cobertura).
+  - `Rank`: Record inmutable que modela un intervalo con inicio y fin.
+- **Open/Closed Principle (OCP)**:
+  - El sistema permite agregar nuevas estrategias de resolución (ej. Parte C) implementando la interfaz `Solver` y registrándola en la fábrica, sin modificar el código existente.
+  - `InstructionReader` permite integrar nuevas fuentes de datos (API, Base de Datos) sin alterar la lógica de los solvers.
+- **Liskov Substitution Principle (LSP)**:
+  - `Day05ASolver` y `Day05BSolver` implementan la interfaz `Solver`, siendo completamente intercambiables para el cliente (`Main`).
+- **Interface Segregation Principle (ISP)**:
+  - `InstructionReader` define un contrato específico y conciso para la lectura de datos (`readAllData`), evitando obligar a las clases a depender de métodos que no utilizan.
+- **Dependency Inversion Principle (DIP)**:
+  - Los módulos de alto nivel (`Main`, Solvers) dependen de abstracciones (`Solver`, `InstructionReader`), y no de implementaciones concretas como `FileInstructionReader`.
 
-El objetivo cambia a calcular el número total de IDs únicos que son considerados frescos por la unión de todos los rangos de IDs frescos, ignorando la lista de IDs disponibles.
+### 2. Patrones de Diseño
 
-## Estructura del Proyecto
+Se han implementado patrones de diseño para estructurar la creación y el comportamiento:
 
-El código está organizado en dos paquetes principales dentro de `src/main/java/software/aoc/day05`, correspondiendo a cada parte del problema:
+- **Strategy Pattern (Estrategia)**:
 
-- **`a`**: Contiene la solución para la Parte 1.
-- **`b`**: Contiene la solución para la Parte 2.
+  - La interfaz `Solver` define la estrategia genérica. `Day05ASolver` (conteo de IDs válidos) y `Day05BSolver` (cálculo de cobertura total de rangos) son las estrategias concretas.
 
-Esta separación permite mantener independientes las lógicas de cada parte, aunque compartan conceptos similares.
+- **Factory Pattern (Fábrica)**:
 
-## Principios de Diseño y Arquitectura
+  - `SolverFactory`: Centraliza la lógica de decisión e instanciación de los Solvers.
+  - `ReaderFactory`: Abstrae la creación del `InstructionReader`, permitiendo cambiar la implementación de lectura fácilmente.
 
-Para asegurar un código robusto, flexible y mantenible, la solución ha evolucionado aplicando principios SOLID avanzados y patrones de diseño.
+- **Dependency Injection**:
+  - El `InstructionReader` se inyecta en el constructor de los Solvers (`Day05ASolver`, `Day05BSolver`). Esto desacopla la obtención de datos de su procesamiento.
 
-### 1. Principio de Responsabilidad Única (SRP)
+### 3. Clean Code y Refactorización
 
-Cada clase tiene una responsabilidad claramente definida:
+Aspectos clave para la legibilidad y mantenimiento:
 
-- **`InstructionReader` (Interface) / `FileInstructionReader`**: Responsables exclusivamente de la lectura y parseo de datos.
-- **`RankVerification`**: Encapsula la lógica de dominio (reglas de negocio sobre rangos).
-- **`Day05ASolver` / `Day05BSolver`**: Orquestan la solución de cada parte, coordinando la lectura y la verificación.
-- **`ReaderFactory`**: Centraliza la creación de objetos de lectura.
+- **Records**: Uso de Java Records (`Rank`, `RankVerification` - aunque este tiene lógica, `FileOutput`) para modelar datos inmutables de forma concisa.
+- **Meaningful Names**: Nombres expresivos para métodos y variables (`withinAnyRank`, `calculateTotalFreshIds`, `mergeRanges`).
+- **Encapsulation**: La lógica compleja de fusión de rangos se encapsula dentro de `RankVerification`, manteniendo los Solvers limpios y enfocados en la orquestación.
 
-### 2. Principio de Inversión de Dependencias (DIP) y Uso de Interfaces
-
-Se ha desacoplado la lógica de alto nivel de los detalles de bajo nivel mediante interfaces:
-
-- **Abstracción sobre Implementación**: Los solucionadores (`Solver`) no dependen de la clase concreta `FileInstructionReader`, sino de la interfaz `InstructionReader`.
-- **Beneficio**: Esto permite cambiar la fuente de datos (por ejemplo, leer de una API o un String para tests) sin modificar una sola línea de la lógica de resolución.
-
-### 3. Patrón Factory Method
-
-Se utiliza extensivamente el patrón Factory para la creación de objetos, centralizando la configuración y el ensamblaje de dependencias:
-
-- **`ReaderFactory`**: Encapsula la creación del `InstructionReader`.
-- **`SolverFactory`**: Encapsula la creación del `Solver` completo. No solo instancia la clase, sino que también resuelve sus dependencias (como obtener el `InstructionReader` necesario).
-- **Flexibilidad**: El `Main` queda completamente limpio de lógica de construcción. Solo pide un "solucionador" y lo ejecuta.
-
-### 4. Inyección de Dependencias
-
-Las dependencias clave se inyectan a través del constructor. La `SolverFactory` es quien actúa conceptualmente como el "inyector", pasando la instancia correcta de `InstructionReader` al constructor de `Solver`.
-
-### 5. Modularidad e Independencia
-
-Se mantiene la separación estricta entre paquetes `a` (Parte 1) y `b` (Parte 2). Aunque comparten conceptos, cada paquete posee su propio "set" de interfaces e implementaciones. Esto evita el acoplamiento accidental entre las dos partes del problema, permitiendo que evolucionen de manera totalmente independiente.
-
-## Diagrama de Clases
-
-A continuación se muestra el diagrama de clases actualizado. Nótese cómo `Main` ahora solo depende de `SolverFactory` y la interfaz `Solver`, logrando un desacoplamiento máximo.
+### 4. Diagrama de Arquitectura
 
 ```mermaid
 classDiagram
-    %% Clases principales de la arquitectura
     class Main {
-        +main()
-    }
-
-    class Solver {
-        <<interface>>
-        +solve() Object
-    }
-
-    class Day05Solver {
-        -reader: InstructionReader
-        +Day05Solver(InstructionReader)
-        +solve() Object
+        +main(args: String[]) void$
     }
 
     class SolverFactory {
-        +createSolver(path) Solver
+        +createSolver(type: String, filePath: String) Solver$
+    }
+
+    class Solver {
+        <<Interface>>
+        +solve() Object
+    }
+
+    class Day05ASolver {
+        +Day05ASolver(reader: InstructionReader)
+        +solve() Object
+    }
+
+    class Day05BSolver {
+        +Day05BSolver(reader: InstructionReader)
+        +solve() Object
     }
 
     class InstructionReader {
-        <<interface>>
+        <<Interface>>
         +readAllData() FileOutput
     }
 
     class FileInstructionReader {
-        -filePath: String
         +readAllData() FileOutput
     }
 
-    class ReaderFactory {
-        +createFileReader(path) InstructionReader
+    class FileOutput {
+        <<Record>>
+        +ranges() List~Rank~
+        +id() List~Long~
     }
 
     class RankVerification {
-        -ranges: List~Rank~
-        +withinAnyRank(value) boolean
+        +withinAnyRank(value: Long) boolean
         +calculateTotalFreshIds() long
+        -mergeRanges() List~Rank~
     }
 
     class Rank {
-        -start: Long
-        -end: Long
-        +withinTheRange(value) boolean
+        <<Record>>
+        +start() Long
+        +end() Long
+        +withinTheRange(value: Long) boolean
     }
 
-    class FileOutput {
-        -ranges: List~Rank~
-        -id: List~Long~
-    }
+    Main ..> SolverFactory : usa
+    SolverFactory ..> Solver : crea
+    SolverFactory ..> Day05ASolver : instancia
+    SolverFactory ..> Day05BSolver : instancia
+    SolverFactory ..> FileInstructionReader : usa
 
-    %% Relaciones
-    Main --> SolverFactory : usa
-    SolverFactory --> Day05Solver : crea
-    SolverFactory ..> ReaderFactory : usa
-    Main ..> Solver : usa (interface)
-    Day05Solver ..|> Solver : implementa
-    Day05Solver --> InstructionReader : inyectado con
-    FileInstructionReader ..|> InstructionReader : implementa
-    ReaderFactory ..> FileInstructionReader : instancia
-    Day05Solver --> RankVerification : delega lógica de negocio
-    RankVerification *-- Rank : compone
-    FileInstructionReader ..> Rank : crea
-    InstructionReader ..> FileOutput : retorna
-    FileInstructionReader ..> FileOutput : retorna
-    FileOutput o-- Rank : agrega
+    Day05ASolver ..|> Solver : implementa
+    Day05BSolver ..|> Solver : implementa
+
+    Day05ASolver --> InstructionReader : usa
+    Day05BSolver --> InstructionReader : usa
+    InstructionReader <|.. FileInstructionReader : implementa
+
+    FileInstructionReader ..> FileOutput : produce
+    FileOutput --> Rank : contiene
+
+    Day05ASolver ..> RankVerification : usa
+    Day05BSolver ..> RankVerification : usa
+    RankVerification --> Rank : maneja
 ```
+
+### 5. Estructura del Proyecto
+
+La estructura de paquetes organiza el código por responsabilidad y funcionalidad:
+
+- `software.aoc.day05`: Interfaces (`Solver`, `InstructionReader`), fábricas (`SolverFactory`, `ReaderFactory`) y modelo de dominio (`Rank`, `RankVerification`, `FileOutput`).
+- `software.aoc.day05.a`: Implementación concreta de la estrategia para la Parte A (`Day05ASolver`).
+- `software.aoc.day05.b`: Implementación concreta de la estrategia para la Parte B (`Day05BSolver`).
+
+## Ejecución del Proyecto
+
+El proyecto es una aplicación Java estándar gestionada con Maven.
+
+### Requisitos
+
+- Java 17 o superior.
+- Maven.
+
+### Cómo Ejecutar
+
+La clase principal `Main` permite ejecutar la solución. Asegúrese de configurar los argumentos o la entrada según se requiera (por defecto busca `src/main/resources/input.txt` o similar según la implementación del `FileInstructionReader`).
+
+- Ejecutar `software.aoc.day05.Main`

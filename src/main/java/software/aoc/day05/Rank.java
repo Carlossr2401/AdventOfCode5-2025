@@ -1,4 +1,4 @@
-package software.aoc.day05.a;
+package software.aoc.day05;
 
 public record Rank(Long start, Long end) {
 

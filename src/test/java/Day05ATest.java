@@ -1,6 +1,7 @@
 import org.junit.Test;
-import software.aoc.day05.a.Rank;
-import software.aoc.day05.a.RankVerification;
+
+import software.aoc.day05.Rank;
+import software.aoc.day05.RankVerification;
 
 import java.util.Collections;
 import java.util.List;

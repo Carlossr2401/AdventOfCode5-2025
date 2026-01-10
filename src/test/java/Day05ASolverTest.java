@@ -1,5 +1,10 @@
 import org.junit.Test;
-import software.aoc.day05.a.*;
+
+import software.aoc.day05.FileOutput;
+import software.aoc.day05.InstructionReader;
+import software.aoc.day05.Rank;
+import software.aoc.day05.Solver;
+import software.aoc.day05.a.Day05ASolver;
 
 import java.io.IOException;
 import java.util.List;
